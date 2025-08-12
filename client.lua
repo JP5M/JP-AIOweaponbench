@@ -2,17 +2,46 @@ local props = {}
 
 local function openRepairBench(i)
     local options = {}
+    local repairOptions = {}
+    local scratchOptions = {}
     local items = lib.callback.await('openRepairBench', false)
     if items then
+        options[1] = {
+            title = 'Repair Weapons',
+            icon = 'fa-solid fa-wrench',
+            menu = 'repairbench'
+        }
+        options[2] = {
+            title = 'Scratch VINs',
+            icon = 'fa-solid fa-xmark',
+            menu = 'scratchvin'
+        }
+        options[2] = {
+            title = 'Weapon tampering',
+            icon = 'fa-solid fa-xmark',
+            menu = 'weapontampering'
+        }
+
         for name, data in pairs(items) do
             for _, v in pairs(data) do
                 if v.slot then
-                    options[#options+1] = {id = name .. v.slot, title = v.label, description = string.format('Durability: %s', v.metadata.durability .. '%'), serverEvent = 'OT_weaponrepair:startweaponrepair', args = {slot = v.slot, name = name, bench = i}}
+                    repairOptions[#repairOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Durability: %s', v.metadata.durability .. '%'), serverEvent = 'OT_weaponrepair:startweaponrepair', args = {slot = v.slot, name = name, bench = i}}
                 end
             end
         end
-        lib.registerContext({id = 'repairbench', title = 'Repair Bench', options = options})
-        lib.showContext('repairbench')
+
+        for name, data in pairs(items) do
+            for _, v in pairs(data) do
+                if v.slot then
+                    scratchOptions[#scratchOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:scratchvin', args = {slot = v.slot, name = name, bench = i}}
+                end
+            end
+        end
+
+        lib.registerContext({id = 'mainmenu', title = 'All in one weapon station', options = options})
+        lib.registerContext({id = 'repairbench', title = 'Repair weapons', options = repairOptions, menu = 'mainmenu'})
+        lib.registerContext({id = 'scratchvin', title = 'Scratch VINs', options = scratchOptions, menu = 'mainmenu'})
+        lib.showContext('mainmenu')
     end
 end
 
