@@ -1,7 +1,21 @@
-# OT_weaponrepair
+# OT_weaponrepair (JP5M Fork)
 
-A simple weapon repair script for ox_inventory, using ox_lib for the menu etc. specify a global required item to repair or specify weapons to have unique required items to repair at a workbench, configure as many locations as you want, and specify whether or not you need the prop to be spawned.
+This is a **forked version** of the original [OT_weaponrepair](https://github.com/OTSTUDIOS/OT_weaponrepair) by OTSTUDIOS, maintained and extended by **JP5M**.
 
-![GitHub all releases](https://img.shields.io/github/downloads/OTSTUDIOS/OT_weaponrepair/total?color=%2329c785&style=for-the-badge) 
-<br>
-[![Support Server](https://img.shields.io/discord/941423187105816616.svg?label=Discord&logo=Discord&colorB=%2329c785&style=for-the-badge)](https://discord.gg/OTSTUDIOS)
+## About
+
+A simple weapon repair script for ox_inventory, using ox_lib for the menu system. This fork introduces new features such as **Serial Number Scratching** and **Weapon Tampering**, in addition to the original functionality:
+
+- Specify a global required item to repair, or set unique required items for specific weapons.
+- Configure as many repair locations as you want.
+- Optionally require the repair bench prop to be spawned.
+
+## New Features in This Fork
+
+- **Serial Number Scratching:** Redact or remove weapon serial numbers at the bench.
+- **Weapon Tampering:** Additional menu options for advanced weapon modifications (feature in progress).
+
+## Credits
+
+- Original script by [OTSTUDIOS](https://github.com/OTSTUDIOS/OT_weaponrepair)
+- Fork and new features by **JP5M**
