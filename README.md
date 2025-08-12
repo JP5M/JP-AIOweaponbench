@@ -1,4 +1,4 @@
-# OT_weaponrepair (JP5M Fork)
+# JP-AIOweaponbench
 
 This is a **forked version** of the original [OT_weaponrepair](https://github.com/OTSTUDIOS/OT_weaponrepair) by OTSTUDIOS, maintained and extended by **JP5M**.
 
