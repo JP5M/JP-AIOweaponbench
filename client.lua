@@ -5,28 +5,35 @@ local function openRepairBench(i)
     local repairOptions = {}
     local scratchOptions = {}
     local tamperingOptions = {}
+    local location = Config.locations[i]
     local items = lib.callback.await('openRepairBench', false)
     if items then
-        options[1] = {
-            title = 'Repair Weapons',
-            icon = 'fa-solid fa-wrench',
-            menu = 'repairbench'
-        }
-        options[2] = {
-            title = 'Scratch VINs',
-            icon = 'fa-solid fa-xmark',
-            menu = 'scratchvin'
-        }
-        options[3] = {
-            title = 'Weapon tampering',
-            icon = 'fa-solid fa-xmark',
-            menu = 'weapontampering'
-        }
+        if location.repair then
+            options[1] = {
+                title = 'Repair Weapons',
+                icon = 'fa-solid fa-wrench',
+                menu = 'repairbench'
+            }
+        end
+        if location.scratch then
+            options[2] = {
+                title = 'Scratch VINs',
+                icon = 'fa-solid fa-xmark',
+                menu = 'scratchvin'
+            }
+        end
+        if location.tampering then
+            options[3] = {
+                title = 'Weapon tampering',
+                icon = 'fa-solid fa-xmark',
+                menu = 'weapontampering'
+            }
+        end
 
         for name, data in pairs(items) do
             for _, v in pairs(data) do
                 if v.slot then
-                    repairOptions[#repairOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Durability: %s', v.metadata.durability .. '%'), serverEvent = 'OT_weaponrepair:startweaponrepair', args = {slot = v.slot, name = name, bench = i}}
+                    repairOptions[#repairOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Durability: %s', v.metadata.durability .. '%'), serverEvent = 'OT_weaponrepair:startweaponrepair', args = { slot = v.slot, name = name, bench = i } }
                 end
             end
         end
@@ -35,9 +42,9 @@ local function openRepairBench(i)
             for _, v in pairs(data) do
                 if v.slot then
                     if v.metadata.serial == 'SCRATCHED' then
-                        
+
                     else
-                        scratchOptions[#scratchOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweaponscratchjob', args = {slot = v.slot, name = name, bench = i}}
+                        scratchOptions[#scratchOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweaponscratchjob', args = { slot = v.slot, name = name, bench = i } }
                     end
                 end
             end
@@ -46,53 +53,54 @@ local function openRepairBench(i)
         for name, data in pairs(items) do
             for _, v in pairs(data) do
                 if v.slot then
-                    tamperingOptions[#tamperingOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweapontamperingjob', args = {slot = v.slot, name = name, bench = i}}
+                    tamperingOptions[#tamperingOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweapontamperingjob', args = { slot = v.slot, name = name, bench = i } }
                 end
             end
         end
 
-        lib.registerContext({id = 'mainmenu', title = 'All in one weapon station', options = options})
-        lib.registerContext({id = 'repairbench', title = 'Repair weapons', options = repairOptions, menu = 'mainmenu'})
-        lib.registerContext({id = 'scratchvin', title = 'Scratch VINs', options = scratchOptions, menu = 'mainmenu'})
-        lib.registerContext({id = 'weapontampering', title = 'Weapon tampering', options = tamperingOptions, menu = 'mainmenu'})
+        lib.registerContext({ id = 'mainmenu', title = 'All in one weapon station', options = options })
+        lib.registerContext({ id = 'repairbench', title = 'Repair weapons', options = repairOptions, menu = 'mainmenu' })
+        lib.registerContext({ id = 'scratchvin', title = 'Scratch VINs', options = scratchOptions, menu = 'mainmenu' })
+        lib.registerContext({ id = 'weapontampering', title = 'Weapon tampering', options = tamperingOptions, menu =
+        'mainmenu' })
         lib.showContext('mainmenu')
     end
 end
 
 RegisterNetEvent('OT_weaponrepair:repairitem', function(name)
     if lib.progressBar({
-        duration = Config.require[name] and Config.require[name].repairtime or Config.repairtime,
-        label = 'Repairing Weapon',
-        useWhileDead = false,
-        canCancel = false,
-        anim = {
-            dict = 'mini@repair',
-            clip = 'fixing_a_ped'
-        },
-        disable = {
-            move = true,
-            car = true
-        }
-    }) then
+            duration = Config.require[name] and Config.require[name].repairtime or Config.repairtime,
+            label = 'Repairing Weapon',
+            useWhileDead = false,
+            canCancel = false,
+            anim = {
+                dict = 'mini@repair',
+                clip = 'fixing_a_ped'
+            },
+            disable = {
+                move = true,
+                car = true
+            }
+        }) then
         TriggerServerEvent('OT_weaponrepair:fixweapon')
     end
 end)
 
 RegisterNetEvent('OT_weaponrepair:scratchitem', function(name)
     if lib.progressBar({
-        duration = Config.require[name] and Config.require[name].repairtime or Config.repairtime,
-        label = 'Scratching Weapon',
-        useWhileDead = false,
-        canCancel = false,
-        anim = {
-            dict = 'mini@repair',
-            clip = 'fixing_a_ped'
-        },
-        disable = {
-            move = true,
-            car = true
-        }
-    }) then
+            duration = Config.require[name] and Config.require[name].repairtime or Config.repairtime,
+            label = 'Scratching Weapon',
+            useWhileDead = false,
+            canCancel = false,
+            anim = {
+                dict = 'mini@repair',
+                clip = 'fixing_a_ped'
+            },
+            disable = {
+                move = true,
+                car = true
+            }
+        }) then
         TriggerServerEvent('OT_weaponrepair:scratchweapon')
     end
 end)
@@ -100,15 +108,16 @@ end)
 
 local target = GetResourceState('ox_target') == 'started' and true or false
 for i = 1, #Config.locations do
-
     local location = Config.locations[i]
 
     if location.spawnprop then
-        local benchfar = lib.points.new(location.coords, 50, {coords = location.coords, heading = location.heading, index = i})
+        local benchfar = lib.points.new(location.coords, 50,
+            { coords = location.coords, heading = location.heading, index = i })
 
         function benchfar:onEnter()
             lib.requestModel(`gr_prop_gr_bench_02a`)
-            props[self.index] = CreateObject(`gr_prop_gr_bench_02a`, self.coords.x, self.coords.y, self.coords.z, false, false, false)
+            props[self.index] = CreateObject(`gr_prop_gr_bench_02a`, self.coords.x, self.coords.y, self.coords.z, false,
+                false, false)
             SetEntityHeading(props[self.index], self.heading)
             FreezeEntityPosition(props[self.index], true)
             if target then
@@ -131,7 +140,7 @@ for i = 1, #Config.locations do
         function benchfar:onExit()
             if DoesEntityExist(props[self.index]) then
                 if target then
-                    exports.ox_target:removeLocalEntity(props[self.index], {'weaponrepair:openRepairBench'})
+                    exports.ox_target:removeLocalEntity(props[self.index], { 'weaponrepair:openRepairBench' })
                 end
                 DeleteEntity(props[self.index])
             end
@@ -160,16 +169,16 @@ for i = 1, #Config.locations do
             })
         end
     else
-        local bench = lib.points.new(location.coords, 2, {index = i})
+        local bench = lib.points.new(location.coords, 2, { index = i })
 
         function bench:onEnter()
-            lib.showTextUI('[E] - Open Weapon Bench', {icon = 'wrench'})
+            lib.showTextUI('[E] - Open Weapon Bench', { icon = 'wrench' })
         end
-    
+
         function bench:onExit()
             lib.hideTextUI()
         end
-    
+
         function bench:nearby()
             if IsControlJustReleased(0, 38) then
                 openRepairBench(self.index)
@@ -183,7 +192,7 @@ AddEventHandler('onResourceStop', function(name)
     for _, v in pairs(props) do
         if DoesEntityExist(v) then
             if target then
-                exports.ox_target:removeLocalEntity(v, {'weaponrepair:openRepairBench'})
+                exports.ox_target:removeLocalEntity(v, { 'weaponrepair:openRepairBench' })
             end
             DeleteEntity(v)
         end
