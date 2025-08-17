@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
-author 'stuxxy'
-version '1.5.1'
+author 'JP5M'
+version '1.0.0'
 lua54 'yes'
 
 shared_scripts {
@@ -16,6 +16,12 @@ server_scripts {
 
 client_scripts {
     'client.lua'
+}
+
+dependencies {
+    'ox_inventory',
+    'ox_lib',
+    'ox_target'
 }
 
 escrow_ignore {
