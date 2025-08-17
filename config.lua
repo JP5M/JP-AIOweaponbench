@@ -48,7 +48,9 @@ Config.locations = {
         spawnprop = true, -- spawns the workbench at the location 
         free = false, -- allows weapons to be repaired for free at the location
         repair = true, -- allows weapons to be repaired at the location
+        freeScratching = false, -- allows weapons to be scratched for free at the location
         scratch = true, -- allows weapons to be scratched at the location
+        freeTampering = false, -- allows weapons to be tampered for free at the location
         tampering = true, -- allows weapons to be tampered at the location
     }
 }

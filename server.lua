@@ -72,7 +72,7 @@ RegisterNetEvent('OT_weaponrepair:startweaponscratchjob', function(data)
     local slot = ox_inventory:GetSlot(source, data.slot)
     if slot and slot.name == data.name then
         local pCoords = GetEntityCoords(GetPlayerPed(source))
-        if not Config.locations[data.bench].free then
+        if not Config.locations[data.bench].freeScratching then
             local requiredScratchItem = Config.require[data.name] and Config.require[data.name].requiredScratchitem or Config.requiredScratchitem
             local requiredscratchAmount = Config.require[data.name] and Config.require[data.name].requiredscratchamount or Config.requiredscratchamount
             local count = ox_inventory:Search(source, 'count', requiredScratchItem)
