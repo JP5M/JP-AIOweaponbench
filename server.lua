@@ -147,6 +147,7 @@ RegisterNetEvent('OT_weaponrepair:fixweapon', function()
         local slot = ox_inventory:GetSlot(source, repairs[source].slot)
         if slot and slot.name == repairs[source].name then
             ox_inventory:SetDurability(source, repairs[source].slot, 100)
+            TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'success', description = 'Weapon has been repaired successfully'})
             if Config.useOTSkills then
                 exports.OT_skills:addXP(source, 'gunsmithing', Config.xpreward)
             end
@@ -173,6 +174,7 @@ RegisterNetEvent('OT_weaponrepair:scratchweapon', function()
             end
             metadata.serial = Config.scratchedText
             ox_inventory:SetMetadata(source, scratches[source].slot, metadata) -- Example of setting a new serial
+            TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'success', description = 'Serial number has been scratched successfully'})
             if Config.useOTSkills then
                 exports.OT_skills:addXP(source, 'gunsmithing', Config.xpreward)
             end
@@ -198,6 +200,7 @@ RegisterNetEvent('OT_weaponrepair:tamperweapon', function()
             end
             metadata.tampered = true
             ox_inventory:SetMetadata(source, tampers[source].slot, metadata) -- Example of setting a new serial
+            TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'success', description = 'Weapon has been tampered successfully'})
             if Config.useOTSkills then
                 exports.OT_skills:addXP(source, 'gunsmithing', Config.xpreward)
             end
