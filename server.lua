@@ -115,19 +115,19 @@ RegisterNetEvent('OT_weaponrepair:startweapontamperingjob', function(data)
     if slot and slot.name == data.name then
         local pCoords = GetEntityCoords(GetPlayerPed(source))
         if not Config.locations[data.bench].freeTampering then
-            local requiredTamperingItem = Config.require[data.name] and Config.require[data.name].requiredTamperingItem or Config.requiredTamperingItem
-            local requiredTamperingAmount = Config.require[data.name] and Config.require[data.name].requiredTamperingAmount or Config.requiredTamperingAmount
-            local count = ox_inventory:Search(source, 'count', requiredTamperingItem)
+            local requiredTamperingitem = Config.require[data.name] and Config.require[data.name].requiredTamperingitem or Config.requiredTamperingitem
+            local requiredTamperingamount = Config.require[data.name] and Config.require[data.name].requiredTamperingamount or Config.requiredTamperingamount
+            local count = ox_inventory:Search(source, 'count', requiredTamperingitem)
             if #(pCoords - Config.locations[data.bench].coords) > 10.0 then print('Player ID:', source, 'Attempting to fixweapon away from bench, probably cheating') return end
             if not count then return TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = 'Missing Required items'}) end
-            if count >= requiredTamperingAmount then
-                if not ox_inventory:RemoveItem(source, requiredTamperingItem, requiredTamperingAmount) then return end
+            if count >= requiredTamperingamount then
+                if not ox_inventory:RemoveItem(source, requiredTamperingitem, requiredTamperingamount) then return end
                 tampers[source] = {}
                 tampers[source].slot = data.slot
                 tampers[source].name = data.name
                 TriggerClientEvent('OT_weaponrepair:tamperitem', source, data.name)
             else
-                TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = string.format('You dont have enough %s', requiredTamperingItem)})
+                TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = string.format('You dont have enough %s', requiredTamperingitem)})
             end
         else
             if #(pCoords - Config.locations[data.bench].coords) > 10.0 then print('Player ID:', source, 'Attempting to fixweapon for free away from bench, probably cheating') return end
