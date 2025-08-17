@@ -42,7 +42,7 @@ local function openRepairBench(i)
             for _, v in pairs(data) do
                 if v.slot then
                     if v.metadata.serial == Config.scratchedText or not v.metadata.serial then
-
+                        -- Do not add scratched or melee weapons to the scratching options
                     else
                         scratchOptions[#scratchOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweaponscratchjob', args = { slot = v.slot, name = name, bench = i } }
                     end
@@ -54,7 +54,7 @@ local function openRepairBench(i)
             for _, v in pairs(data) do
                 if v.slot then
                     if v.metadata.tampered or not v.metadata.serial then
-                        -- Do not add tampered weapons to the tampering options
+                        -- Do not add tampered or melee weapons to the tampering options
                     else
                        tamperingOptions[#tamperingOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweapontamperingjob', args = { slot = v.slot, name = name, bench = i } } -- Add only non-tampered weapons to the tampering options
                     end
