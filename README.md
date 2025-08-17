@@ -2,8 +2,6 @@
 
 This is a **forked version** of the original [OT_weaponrepair](https://github.com/OTSTUDIOS/OT_weaponrepair) by OTSTUDIOS, maintained and extended by **JP5M**.
 
-![GitHub all releases](https://img.shields.io/github/downloads/JP5M/JP-AIOweaponbench/total?style=flat-square)
-
 # JP-AIOweaponbench
 
 A FiveM all-in-one weapon bench for use with ox_inventory and ox_lib.
@@ -43,3 +41,7 @@ A FiveM all-in-one weapon bench for use with ox_inventory and ox_lib.
 
 - The script uses server callbacks and events to ensure only the weapon actually held is affected.
 - Weapons are matched by slot and metadata to prevent issues with multiple identical weapons.
+
+## Statistics
+
+![GitHub all releases](https://img.shields.io/github/downloads/JP5M/JP-AIOweaponbench/total?style=flat-square)
