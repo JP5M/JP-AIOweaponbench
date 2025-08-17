@@ -22,6 +22,7 @@ Config.requiredTamperingitem = 'money'
 Config.requiredTamperingamount = 10000
 Config.tamperingItem = 'weapontamperingkit'
 Config.tamperingTime = 10000
+Config.explosionDamage = 50
 
 -- Weapon Individual Configurations
 Config.require = {

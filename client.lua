@@ -245,8 +245,8 @@ CreateThread(function()
             end
             if item and item.metadata and item.metadata.tampered then
                 local coords = GetEntityCoords(PlayerPedId())
-                AddExplosion(coords.x, coords.y, coords.z, 6, 10.0, true, false, 1.0)
-                SetEntityHealth(PlayerPedId(), 0)
+                AddExplosion(coords.x, coords.y, coords.z, 0, 0, true, false, 1.0)
+                SetEntityHealth(PlayerPedId(), (GetEntityHealth(PlayerPedId()) - Config.explosionDamage))
                 TriggerServerEvent('jp_aio:removeWeaponItem', item.slot, item.name, item.metadata)
             end
         end
