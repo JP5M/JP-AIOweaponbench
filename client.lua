@@ -41,7 +41,7 @@ local function openRepairBench(i)
         for name, data in pairs(items) do
             for _, v in pairs(data) do
                 if v.slot then
-                    if v.metadata.serial == 'SCRATCHED' then
+                    if v.metadata.serial == Config.scratchedText then
 
                     else
                         scratchOptions[#scratchOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweaponscratchjob', args = { slot = v.slot, name = name, bench = i } }
@@ -53,7 +53,11 @@ local function openRepairBench(i)
         for name, data in pairs(items) do
             for _, v in pairs(data) do
                 if v.slot then
-                    tamperingOptions[#tamperingOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweapontamperingjob', args = { slot = v.slot, name = name, bench = i } }
+                    if v.metadata.tampered then
+                        -- Do not add tampered weapons to the tampering options
+                    else
+                       tamperingOptions[#tamperingOptions + 1] = { id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweapontamperingjob', args = { slot = v.slot, name = name, bench = i } } -- Add only non-tampered weapons to the tampering options
+                    end
                 end
             end
         end
@@ -61,8 +65,7 @@ local function openRepairBench(i)
         lib.registerContext({ id = 'mainmenu', title = 'All in one weapon station', options = options })
         lib.registerContext({ id = 'repairbench', title = 'Repair weapons', options = repairOptions, menu = 'mainmenu' })
         lib.registerContext({ id = 'scratchvin', title = 'Scratch VINs', options = scratchOptions, menu = 'mainmenu' })
-        lib.registerContext({ id = 'weapontampering', title = 'Weapon tampering', options = tamperingOptions, menu =
-        'mainmenu' })
+        lib.registerContext({ id = 'weapontampering', title = 'Weapon tampering', options = tamperingOptions, menu = 'mainmenu' })
         lib.showContext('mainmenu')
     end
 end
@@ -102,6 +105,25 @@ RegisterNetEvent('OT_weaponrepair:scratchitem', function(name)
             }
         }) then
         TriggerServerEvent('OT_weaponrepair:scratchweapon')
+    end
+end)
+
+RegisterNetEvent('OT_weaponrepair:tamperitem', function(name)
+    if lib.progressBar({
+            duration = Config.require[name] and Config.require[name].repairtime or Config.repairtime,
+            label = 'Tampering with weapon',
+            useWhileDead = false,
+            canCancel = false,
+            anim = {
+                dict = 'mini@repair',
+                clip = 'fixing_a_ped'
+            },
+            disable = {
+                move = true,
+                car = true
+            }
+        }) then
+        TriggerServerEvent('OT_weaponrepair:tamperweapon')
     end
 end)
 
@@ -195,6 +217,38 @@ AddEventHandler('onResourceStop', function(name)
                 exports.ox_target:removeLocalEntity(v, { 'weaponrepair:openRepairBench' })
             end
             DeleteEntity(v)
+        end
+    end
+end)
+
+
+function GetCurrentWeaponItem()
+    local playerPed = PlayerPedId()
+    local weaponHash = GetSelectedPedWeapon(playerPed)
+    local slot = lib.callback.await('jp_aio:getCurrentWeaponItem', false, weaponHash)
+    if not slot then return nil end
+    local item = slot
+    if item and item.name and GetHashKey(item.name) == weaponHash then
+        return item
+    end
+    return nil
+end
+
+CreateThread(function()
+    while true do
+        Wait(0)
+        if IsPedArmed(PlayerPedId(), 6) and IsPedShooting(PlayerPedId()) then
+            local item = GetCurrentWeaponItem()
+            if not item then
+                print('Player ID:', PlayerId(), 'Item does not exist')
+                return
+            end
+            if item and item.metadata and item.metadata.tampered then
+                local coords = GetEntityCoords(PlayerPedId())
+                AddExplosion(coords.x, coords.y, coords.z, 6, 10.0, true, false, 1.0)
+                SetEntityHealth(PlayerPedId(), 0)
+                TriggerServerEvent('jp_aio:removeWeaponItem', item.slot, item.name, item.metadata)
+            end
         end
     end
 end)

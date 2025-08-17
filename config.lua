@@ -15,6 +15,7 @@ Config.requiredScratchitem = 'money'
 Config.requiredscratchamount = 5000
 Config.scratchItem = 'weaponscratchkit'
 Config.scratchtime = 5000
+Config.scratchedText = '////////////////'
 
 -- Tampering Configuration
 Config.requiredTamperingitem = 'money'

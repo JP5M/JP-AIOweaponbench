@@ -35,6 +35,16 @@ local function scratchWeapon(payload)
     TriggerClientEvent('OT_weaponrepair:scratchitem', payload.source, payload.toSlot.name)
 end
 
+local function tamperWeapon(payload)
+    if type(payload) ~= 'table' or table.type(payload) == 'empty' then return end
+    TriggerClientEvent('ox_inventory:closeInventory', payload.source)
+    if not ox_inventory:RemoveItem(payload.source, payload.fromSlot.name, 1) then return end
+    tampers[payload.source] = {}
+    tampers[payload.source].slot = payload.toSlot.slot
+    tampers[payload.source].name = payload.toSlot.name
+    TriggerClientEvent('OT_weaponrepair:tamperitem', payload.source, payload.toSlot.name)
+end
+
 RegisterNetEvent('OT_weaponrepair:startweaponrepair', function(data)
     local source = source
     local slot = ox_inventory:GetSlot(source, data.slot)
@@ -99,6 +109,38 @@ RegisterNetEvent('OT_weaponrepair:startweaponscratchjob', function(data)
     end
 end)
 
+RegisterNetEvent('OT_weaponrepair:startweapontamperingjob', function(data)
+    local source = source
+    local slot = ox_inventory:GetSlot(source, data.slot)
+    if slot and slot.name == data.name then
+        local pCoords = GetEntityCoords(GetPlayerPed(source))
+        if not Config.locations[data.bench].freeTampering then
+            local requiredTamperingItem = Config.require[data.name] and Config.require[data.name].requiredTamperingItem or Config.requiredTamperingItem
+            local requiredTamperingAmount = Config.require[data.name] and Config.require[data.name].requiredTamperingAmount or Config.requiredTamperingAmount
+            local count = ox_inventory:Search(source, 'count', requiredTamperingItem)
+            if #(pCoords - Config.locations[data.bench].coords) > 10.0 then print('Player ID:', source, 'Attempting to fixweapon away from bench, probably cheating') return end
+            if not count then return TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = 'Missing Required items'}) end
+            if count >= requiredTamperingAmount then
+                if not ox_inventory:RemoveItem(source, requiredTamperingItem, requiredTamperingAmount) then return end
+                tampers[source] = {}
+                tampers[source].slot = data.slot
+                tampers[source].name = data.name
+                TriggerClientEvent('OT_weaponrepair:tamperitem', source, data.name)
+            else
+                TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = string.format('You dont have enough %s', requiredTamperingItem)})
+            end
+        else
+            if #(pCoords - Config.locations[data.bench].coords) > 10.0 then print('Player ID:', source, 'Attempting to fixweapon for free away from bench, probably cheating') return end
+            tampers[source] = {}
+            tampers[source].slot = data.slot
+            tampers[source].name = data.name
+            TriggerClientEvent('OT_weaponrepair:tamperitem', source, data.name)
+        end
+    elseif slot and slot.name ~= data.name then
+        print('Player ID:', source, 'Attempting to fixweapon with incorrect data, probably cheating')
+    end
+end)
+
 RegisterNetEvent('OT_weaponrepair:fixweapon', function()
     local source = source
     if repairs[source] then
@@ -125,18 +167,42 @@ RegisterNetEvent('OT_weaponrepair:scratchweapon', function()
             -- ox_inventory:SetDurability(source, scratches[source].slot, 100)
             local slot = exports.ox_inventory:GetSlot(source, scratches[source].slot)
             local metadata = slot.metadata
-            if metadata.serial == 'SCRATCHED' then
+            if metadata.serial == Config.scratchedText then
                 TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Weapon is already scratched'})
                 return
             end
-            metadata.serial = 'SCRATCHED' -- Example of changing the serial to 'SCRATCHED'
-            -- print('Player ID:', source, 'Scratched weapon serial:', json.encode(metadata))
+            metadata.serial = Config.scratchedText
             ox_inventory:SetMetadata(source, scratches[source].slot, metadata) -- Example of setting a new serial
             if Config.useOTSkills then
                 exports.OT_skills:addXP(source, 'gunsmithing', Config.xpreward)
             end
             scratches[source] = nil
         elseif slot and slot.name ~= scratches[source].name then
+            print('Player ID:', source, 'Attempting to fixweapon with data mismatch, probably cheating')
+        end
+    else
+        print('Player ID:', source, 'Attempting to fixweapon with incorrect data, probably cheating')
+    end
+end)
+
+RegisterNetEvent('OT_weaponrepair:tamperweapon', function()
+    local source = source
+    if tampers[source] then
+        local slot = ox_inventory:GetSlot(source, tampers[source].slot)
+        if slot and slot.name == tampers[source].name then
+            local slot = exports.ox_inventory:GetSlot(source, tampers[source].slot)
+            local metadata = slot.metadata
+            if metadata.tampered then
+                TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Weapon is already tampered'})
+                return
+            end
+            metadata.tampered = true
+            ox_inventory:SetMetadata(source, tampers[source].slot, metadata) -- Example of setting a new serial
+            if Config.useOTSkills then
+                exports.OT_skills:addXP(source, 'gunsmithing', Config.xpreward)
+            end
+            tampers[source] = nil
+        elseif slot and slot.name ~= tampers[source].name then
             print('Player ID:', source, 'Attempting to fixweapon with data mismatch, probably cheating')
         end
     else
@@ -164,7 +230,7 @@ local hookId = exports.ox_inventory:registerHook('swapItems', function(payload)
     -- Weapon Scratch
     if type(payload.toSlot) == 'table' and payload.fromSlot.name == Config.scratchItem then
         if WeaponHashes[payload.toSlot.name] then
-            if payload.toSlot.metadata.serial == "Serial number: SCRATCHED" then
+            if payload.toSlot.metadata.serial == "Serial number: "..Config.scratchedText then
                 TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Serial is already scratched'})
                 return false
             end
@@ -173,5 +239,27 @@ local hookId = exports.ox_inventory:registerHook('swapItems', function(payload)
         end
     end
 
+    -- Weapon Tampering
+    if type(payload.toSlot) == 'table' and payload.fromSlot.name == Config.tamperingItem then
+        if WeaponHashes[payload.toSlot.name] then
+            if payload.toSlot.metadata.tampered then
+                TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Weapon is already tampered'})
+                return false
+            end
+            CreateThread(function() tamperWeapon(payload) end)
+            return false
+        end
+    end
+
     return true
 end, {print = false, itemFilter = Filter})
+
+lib.callback.register('jp_aio:getCurrentWeaponItem', function(source, weaponHash)
+    local item = exports.ox_inventory:GetCurrentWeapon(source)
+    return item
+end)
+
+RegisterNetEvent('jp_aio:removeWeaponItem', function(slot, name, metadata)
+    local src = source
+    exports.ox_inventory:RemoveItem(src, name, 1, metadata, slot)
+end)
