@@ -16,7 +16,7 @@ local function openRepairBench(i)
             icon = 'fa-solid fa-xmark',
             menu = 'scratchvin'
         }
-        options[2] = {
+        options[3] = {
             title = 'Weapon tampering',
             icon = 'fa-solid fa-xmark',
             menu = 'weapontampering'
