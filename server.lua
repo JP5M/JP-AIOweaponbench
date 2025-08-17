@@ -1,5 +1,7 @@
 local ox_inventory = exports.ox_inventory
 local repairs = {}
+local scratches = {}
+local tampers = {}
 
 if Config.useOTSkills then
     exports.OT_skills:registerSkill({
@@ -21,6 +23,16 @@ local function fixWeapon(payload)
     repairs[payload.source].slot = payload.toSlot.slot
     repairs[payload.source].name = payload.toSlot.name
     TriggerClientEvent('OT_weaponrepair:repairitem', payload.source, payload.toSlot.name)
+end
+
+local function scratchWeapon(payload)
+    if type(payload) ~= 'table' or table.type(payload) == 'empty' then return end
+    TriggerClientEvent('ox_inventory:closeInventory', payload.source)
+    if not ox_inventory:RemoveItem(payload.source, payload.fromSlot.name, 1) then return end
+    scratches[payload.source] = {}
+    scratches[payload.source].slot = payload.toSlot.slot
+    scratches[payload.source].name = payload.toSlot.name
+    TriggerClientEvent('OT_weaponrepair:scratchitem', payload.source, payload.toSlot.name)
 end
 
 RegisterNetEvent('OT_weaponrepair:startweaponrepair', function(data)
@@ -55,6 +67,38 @@ RegisterNetEvent('OT_weaponrepair:startweaponrepair', function(data)
     end
 end)
 
+RegisterNetEvent('OT_weaponrepair:startweaponscratchjob', function(data)
+    local source = source
+    local slot = ox_inventory:GetSlot(source, data.slot)
+    if slot and slot.name == data.name then
+        local pCoords = GetEntityCoords(GetPlayerPed(source))
+        if not Config.locations[data.bench].free then
+            local requiredScratchItem = Config.require[data.name] and Config.require[data.name].requiredScratchitem or Config.requiredScratchitem
+            local requiredscratchAmount = Config.require[data.name] and Config.require[data.name].requiredscratchamount or Config.requiredscratchamount
+            local count = ox_inventory:Search(source, 'count', requiredScratchItem)
+            if #(pCoords - Config.locations[data.bench].coords) > 10.0 then print('Player ID:', source, 'Attempting to fixweapon away from bench, probably cheating') return end
+            if not count then return TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = 'Missing Required items'}) end
+            if count >= requiredscratchAmount then
+                if not ox_inventory:RemoveItem(source, requiredScratchItem, requiredscratchAmount) then return end
+                scratches[source] = {}
+                scratches[source].slot = data.slot
+                scratches[source].name = data.name
+                TriggerClientEvent('OT_weaponrepair:scratchitem', source, data.name)
+            else
+                TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = string.format('You dont have enough %s', requiredItem)})
+            end
+        else
+            if #(pCoords - Config.locations[data.bench].coords) > 10.0 then print('Player ID:', source, 'Attempting to fixweapon for free away from bench, probably cheating') return end
+            scratches[source] = {}
+            scratches[source].slot = data.slot
+            scratches[source].name = data.name
+            TriggerClientEvent('OT_weaponrepair:scratchitem', source, data.name)
+        end
+    elseif slot and slot.name ~= data.name then
+        print('Player ID:', source, 'Attempting to fixweapon with incorrect data, probably cheating')
+    end
+end)
+
 RegisterNetEvent('OT_weaponrepair:fixweapon', function()
     local source = source
     if repairs[source] then
@@ -66,6 +110,24 @@ RegisterNetEvent('OT_weaponrepair:fixweapon', function()
             end
             repairs[source] = nil
         elseif slot and slot.name ~= repairs[source].name then
+            print('Player ID:', source, 'Attempting to fixweapon with data mismatch, probably cheating')
+        end
+    else
+        print('Player ID:', source, 'Attempting to fixweapon with incorrect data, probably cheating')
+    end
+end)
+
+RegisterNetEvent('OT_weaponrepair:scratchweapon', function()
+    local source = source
+    if scratches[source] then
+        local slot = ox_inventory:GetSlot(source, scratches[source].slot)
+        if slot and slot.name == scratches[source].name then
+            ox_inventory:SetDurability(source, scratches[source].slot, 100)
+            if Config.useOTSkills then
+                exports.OT_skills:addXP(source, 'gunsmithing', Config.xpreward)
+            end
+            scratches[source] = nil
+        elseif slot and slot.name ~= scratches[source].name then
             print('Player ID:', source, 'Attempting to fixweapon with data mismatch, probably cheating')
         end
     else

@@ -64,6 +64,25 @@ RegisterNetEvent('OT_weaponrepair:repairitem', function(name)
     end
 end)
 
+RegisterNetEvent('OT_weaponrepair:scratchitem', function(name)
+    if lib.progressBar({
+        duration = Config.require[name] and Config.require[name].repairtime or Config.repairtime,
+        label = 'Scratching Weapon',
+        useWhileDead = false,
+        canCancel = false,
+        anim = {
+            dict = 'mini@repair',
+            clip = 'fixing_a_ped'
+        },
+        disable = {
+            move = true,
+            car = true
+        }
+    }) then
+        TriggerServerEvent('OT_weaponrepair:scratchweapon')
+    end
+end)
+
 
 local target = GetResourceState('ox_target') == 'started' and true or false
 for i = 1, #Config.locations do
@@ -115,7 +134,7 @@ for i = 1, #Config.locations do
                     {
                         name = 'weaponrepair:openRepairBenchZone',
                         icon = 'fa-solid fa-wrench',
-                        label = 'Open Repair Bench',
+                        label = 'Open Weapon Bench',
                         canInteract = function(entity, distance, coords, name, bone)
                             return distance <= 3.0
                         end,
@@ -130,7 +149,7 @@ for i = 1, #Config.locations do
         local bench = lib.points.new(location.coords, 2, {index = i})
 
         function bench:onEnter()
-            lib.showTextUI('[E] - Open Repair Bench', {icon = 'wrench'})
+            lib.showTextUI('[E] - Open Weapon Bench', {icon = 'wrench'})
         end
     
         function bench:onExit()

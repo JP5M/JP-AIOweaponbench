@@ -12,6 +12,9 @@ Config.require = {
     ['WEAPON_COMBATPDW'] = {
         requireditem = 'money',
         requireditemamount = 2000,
+        requiredScratchitem = 'money',
+        requiredscratchamount = 5000,
+        scratchtime = 25000,
         repairtime = 10000
     },
 }
