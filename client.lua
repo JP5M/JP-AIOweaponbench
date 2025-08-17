@@ -4,6 +4,7 @@ local function openRepairBench(i)
     local options = {}
     local repairOptions = {}
     local scratchOptions = {}
+    local tamperingOptions = {}
     local items = lib.callback.await('openRepairBench', false)
     if items then
         options[1] = {
@@ -33,7 +34,19 @@ local function openRepairBench(i)
         for name, data in pairs(items) do
             for _, v in pairs(data) do
                 if v.slot then
-                    scratchOptions[#scratchOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:scratchvin', args = {slot = v.slot, name = name, bench = i}}
+                    if v.metadata.serial == 'SCRATCHED' then
+                        
+                    else
+                        scratchOptions[#scratchOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweaponscratchjob', args = {slot = v.slot, name = name, bench = i}}
+                    end
+                end
+            end
+        end
+
+        for name, data in pairs(items) do
+            for _, v in pairs(data) do
+                if v.slot then
+                    tamperingOptions[#tamperingOptions+1] = {id = name .. v.slot, title = v.label, description = string.format('Serial: %s', v.metadata.serial), serverEvent = 'OT_weaponrepair:startweapontamperingjob', args = {slot = v.slot, name = name, bench = i}}
                 end
             end
         end
@@ -41,6 +54,7 @@ local function openRepairBench(i)
         lib.registerContext({id = 'mainmenu', title = 'All in one weapon station', options = options})
         lib.registerContext({id = 'repairbench', title = 'Repair weapons', options = repairOptions, menu = 'mainmenu'})
         lib.registerContext({id = 'scratchvin', title = 'Scratch VINs', options = scratchOptions, menu = 'mainmenu'})
+        lib.registerContext({id = 'weapontampering', title = 'Weapon tampering', options = tamperingOptions, menu = 'mainmenu'})
         lib.showContext('mainmenu')
     end
 end

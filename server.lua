@@ -85,7 +85,7 @@ RegisterNetEvent('OT_weaponrepair:startweaponscratchjob', function(data)
                 scratches[source].name = data.name
                 TriggerClientEvent('OT_weaponrepair:scratchitem', source, data.name)
             else
-                TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = string.format('You dont have enough %s', requiredItem)})
+                TriggerClientEvent('ox_lib:notify', source, {type = 'error', title = 'Workbench', description = string.format('You dont have enough %s', requiredScratchItem)})
             end
         else
             if #(pCoords - Config.locations[data.bench].coords) > 10.0 then print('Player ID:', source, 'Attempting to fixweapon for free away from bench, probably cheating') return end
@@ -122,7 +122,16 @@ RegisterNetEvent('OT_weaponrepair:scratchweapon', function()
     if scratches[source] then
         local slot = ox_inventory:GetSlot(source, scratches[source].slot)
         if slot and slot.name == scratches[source].name then
-            ox_inventory:SetDurability(source, scratches[source].slot, 100)
+            -- ox_inventory:SetDurability(source, scratches[source].slot, 100)
+            local slot = exports.ox_inventory:GetSlot(source, scratches[source].slot)
+            local metadata = slot.metadata
+            if metadata.serial == 'SCRATCHED' then
+                TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Weapon is already scratched'})
+                return
+            end
+            metadata.serial = 'SCRATCHED' -- Example of changing the serial to 'SCRATCHED'
+            -- print('Player ID:', source, 'Scratched weapon serial:', json.encode(metadata))
+            ox_inventory:SetMetadata(source, scratches[source].slot, metadata) -- Example of setting a new serial
             if Config.useOTSkills then
                 exports.OT_skills:addXP(source, 'gunsmithing', Config.xpreward)
             end
@@ -140,12 +149,29 @@ lib.callback.register('openRepairBench', function(source)
 end)
 
 local hookId = exports.ox_inventory:registerHook('swapItems', function(payload)
+    -- Weapon Repair
     if type(payload.toSlot) == 'table' and payload.fromSlot.name == Config.repairItem then
         if WeaponHashes[payload.toSlot.name] then
-            if payload.toSlot.metadata.durability >= 100.0 then TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Weapon does not need repairing'}) return false end
+            if payload.toSlot.metadata.durability >= 100.0 then
+                TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Weapon does not need repairing'})
+                return false
+            end
             CreateThread(function() fixWeapon(payload) end)
             return false
         end
     end
+
+    -- Weapon Scratch
+    if type(payload.toSlot) == 'table' and payload.fromSlot.name == Config.scratchItem then
+        if WeaponHashes[payload.toSlot.name] then
+            if payload.toSlot.metadata.serial == "Serial number: SCRATCHED" then
+                TriggerClientEvent('ox_lib:notify', payload.source, {position = 'top', type = 'error', description = 'Serial is already scratched'})
+                return false
+            end
+            CreateThread(function() scratchWeapon(payload) end)
+            return false
+        end
+    end
+
     return true
 end, {print = false, itemFilter = Filter})

@@ -5,8 +5,12 @@ Config.xpreward = 5
 
 Config.requireditem = 'money'
 Config.requireditemamount = 1000
+Config.requiredScratchitem = 'money'
+Config.requiredscratchamount = 5000
 Config.repairtime = 5000
 Config.repairItem = 'weaponrepairkit'
+Config.scratchItem = 'weaponscratchkit'
+Config.scratchtime = 5000
 
 Config.require = {
     ['WEAPON_COMBATPDW'] = {
